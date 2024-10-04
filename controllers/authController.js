@@ -1,12 +1,13 @@
 import { request, response } from "express";
 import User from "../models/User.js";
 import bcrypt from "bcrypt"
-import { generarToken } from "../utils/generateToken.js";
+import  generarJWT  from "../utils/generateJWT.js";
 export const login = async (req = request, res = response)=>{
-    const {email, password}=res.body;
+    const {email, password}=req.body;
 
     try{
         const user = await User.findOne({email})
+
         if (!user){
             return res.status(404).json({ok: false, msg: "cuenta no registrada: " + email})
         }
@@ -19,7 +20,7 @@ export const login = async (req = request, res = response)=>{
 
         }
 
-        return res.status(200).json({user, jwt: generarToken(user._id)});
+        return res.status(200).json({logeado:"ok", user, jwt: generarJWT(user._id)});
     }catch(error){
         console.error(error)
     }
