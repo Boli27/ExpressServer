@@ -1,6 +1,8 @@
 import { request, response } from "express";
 import bcrypt from "bcrypt"
 import User from "../models/User.js";
+import { sendEmail } from "../utils/sendEmail.js";
+
 export const createUser = async(req= request,res=response)=>{
 
     const {name, email, password} = req.body
@@ -10,32 +12,33 @@ export const createUser = async(req= request,res=response)=>{
     try{
         user.password = bcrypt.hashSync(user.password,10);
         const newUser = await user.save();
+        await sendEmail(email, name, newUser.token, 'Cuenta Creada', 'Cuenta Creada')
         return res.status(201).json({
             ok: true,
-            user: newUser,
-            test: "sad"
+            user: newUser
         });
     }catch(e){
 
         console.error(e);
-        return res.status(400).json({ok: flase, msg : "algo salio mal"})
+        return res.status(400).json({ok: false, msg : "algo salio mal"})
     }
 
 };
 
-export const verifyUser = async (req =request, res = response)=>{
-
-    const {token} = req.params;
+export const verifyUser = async (req = request, res = response) => {
+    const { token } = req.params;
 
     try {
-        const user = await User.findOne({token})
+
+        const user = await User.findOne({ token })
 
         user.token = null;
         user.verified = true;
 
         await user.save();
 
-        return res.status().json({ok:true, msg: "Usuario verificado"})
+        return res.status(200).json({ok: true, msg: "User verified succesfully"})
+
     } catch (error) {
         console.error(error)
     }
